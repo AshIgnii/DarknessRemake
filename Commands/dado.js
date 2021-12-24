@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('dado')
-    .setDescription('Rola um dado de até 100000 faces. Caso nenhum argumento seja fornecido será de 6 faces')
+    .setDescription('Rola um dado com até 100k de faces. Caso nenhum argumento seja fornecido será de 6 faces')
     .addNumberOption(option =>
       option.setName('faces')
       .setDescription('Numero de faces do dado')
@@ -15,6 +15,6 @@ module.exports = {
       if (fc > 100000) fc = 100000;
       resultado = Math.floor(Math.random()*fc)
     }
-    await interaction.reply({content:`🎲 Resultado: ${resultado.toString()}`, ephemeral: true});
+    await interaction.reply({content:`🎲 Resultado: ${resultado.toString()}`, ephemeral: false});
   },
 };

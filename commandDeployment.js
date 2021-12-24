@@ -1,8 +1,15 @@
 const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const token = require('./Configs/settings.json').token;
-const clientID = require('./Configs/settings.json').clientID;
+const env = require('dotenv').config({ path: './Configs/.env' })
+
+if (env.error) {
+	console.log(chalk.red('Error loading .evn configs!'))
+	return
+}
+
+const token = process.env.TOKEN;
+const clientID = process.env.CLIENT_ID;
 
 const commands = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
