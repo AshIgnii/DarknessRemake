@@ -10,7 +10,7 @@ module.exports = {
       .setRequired(false)),
   async execute(interaction) {
     let resultado = Math.floor(Math.random() * 6);
-    if (interaction.options) {
+    if (interaction.options.get('faces')) {
       let fc = interaction.options.get('faces').value;
       if (fc > 100000) fc = 100000;
       resultado = Math.floor(Math.random()*fc)
