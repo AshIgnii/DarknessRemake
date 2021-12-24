@@ -3,11 +3,19 @@ const fs = require('fs');
 const { Client, Collection, Intents, MessageEmbed } = require('discord.js');
 const Voice = require('@discordjs/voice');
 const chalk = require('chalk');
+const env = require('dotenv').config({ path: './Configs/.env' })
+
 
 //Configs
-const token = require('./Configs/settings.json').token;
-const hguildID = require('./Configs/settings.json').homeGuildID;
-const hgErrorChannel = require('./Configs/settings.json').homeGuildErrorChannel;
+if (env.error) {
+	console.log(chalk.red('Error loading .evn configs!'))
+	return
+}
+
+const token = process.env.TOKEN;
+const hguildID = process.env.HOME_GUILD_ID;
+const hgErrorChannel = process.env.HOME_GUILD_ERROR_CHANNEL;
+
 
 //Client
 const myIntents = new Intents();
@@ -16,7 +24,7 @@ myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FL
 const client = new Client({ intents: myIntents });
 const queue = new Map();
 
-//Registro dos Commandos
+//Commands setup
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
@@ -41,7 +49,7 @@ async function logError(eInteraction, e) {
 
 //Ready Event
 client.once('ready', () => {
-	//Console
+	//Terminal Output
 	const version = require('./package.json').version;
 	const name = require('./package.json').name;
 	const author = require('./package.json').author;
@@ -61,7 +69,7 @@ d8P  ?88  d8P  ?88    88P      888bd8P    88P  ?8bd8b_,dP ?8b,    ?8b,
     'Bot:' + name + '\n' +
     'Autor:' + author + '\n' +
     'Versão:' + version + '\n' +
-    'Servers:' + client.guilds.cache.size); //Cmd Output
+    'Servers:' + client.guilds.cache.size);
   console.log('===================================');
   console.log(chalk.blueBright('Log:'));
 });

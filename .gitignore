@@ -1,5 +1,5 @@
 node_modules
-Configs/settings.json
+Configs/.env
 Commands/newplay.js
 Commands/play.js.old
 Commands/teste.js
