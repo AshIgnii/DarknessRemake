@@ -80,7 +80,6 @@ client.on('interactionCreate', async interaction => {
 	try {
 		if (interaction.commandName == 'tocar') {
 			await command.execute(interaction, serverQueue, queue);
-			console.log('tocar')
 		} else {
 			await command.execute(interaction);
 		}
