@@ -1,15 +1,22 @@
 //Libs
 const fs = require('fs');
-const { Client, Collection, Intents, MessageEmbed } = require('discord.js');
+const {
+  Client,
+  Collection,
+  Intents,
+  MessageEmbed
+} = require('discord.js');
 const Voice = require('@discordjs/voice');
 const chalk = require('chalk');
-const env = require('dotenv').config({ path: './Configs/.env' })
+const env = require('dotenv').config({
+  path: './Configs/.env'
+})
 
 
 //Configs
 if (env.error) {
-	console.log(chalk.red('Error loading .evn configs!'))
-	return
+  console.log(chalk.red('Error loading .evn configs!'));
+  return;
 }
 
 const token = process.env.TOKEN;
@@ -21,7 +28,9 @@ const hgErrorChannel = process.env.HOME_GUILD_ERROR_CHANNEL;
 const myIntents = new Intents();
 myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES);
 
-const client = new Client({ intents: myIntents });
+const client = new Client({
+  intents: myIntents
+});
 const queue = new Map();
 
 //Commands setup
@@ -30,31 +39,36 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 
 
 for (const file of commandFiles) {
-	const command = require(`./commands/${file}`);
-	client.commands.set(command.data.name, command);
+  const command = require(`./commands/${file}`);
+  client.commands.set(command.data.name, command);
 }
 
 //Functions
 async function logError(eInteraction, e) {
-	let hguild = await client.guilds.cache.find(hg => hg.id == hguildID);
-	let echannel = await hguild.channels.fetch(hgErrorChannel);
+  let hguild = await client.guilds.cache.find(hg => hg.id == hguildID);
+  let echannel = await hguild.channels.fetch(hgErrorChannel);
 
-	let embed = new MessageEmbed()
-		.setAuthor('Erro', 'https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png')
-		.setColor('RED')
-		.setDescription(`Comando: ${eInteraction.commandName} \n Autor: ${eInteraction.user.tag} \n Server: ${eInteraction.guild.name} \n \n ${e.name + ': ' + e.message}`)
-		.setTimestamp(eInteraction.createdTimestamp)
-	echannel.send({embeds:[embed]})
-}
+  let embed = new MessageEmbed()
+    .setAuthor({
+      name: 'Erro',
+      iconURL: 'https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png'
+    })
+    .setColor('RED')
+    .setDescription(`Comando: ${eInteraction.commandName} \n Autor: ${eInteraction.user.tag} \n Server: ${eInteraction.guild.name} \n \n ${e.name + ': ' + e.message}`)
+    .setTimestamp(eInteraction.createdTimestamp)
+  echannel.send({
+    embeds: [embed]
+  });
+};
 
 //Ready Event
 client.once('ready', () => {
-	//Terminal Output
-	const version = require('./package.json').version;
-	const name = require('./package.json').name;
-	const author = require('./package.json').author;
+  //Terminal Output
+  const version = require('./package.json').version;
+  const name = require('./package.json').name;
+  const author = require('./package.json').author;
 
-	let pText = `
+  let pText = `
       d8b                     d8b
       88P                     ?88
      d88                       88b
@@ -63,7 +77,7 @@ d8P  ?88  d8P  ?88    88P      888bd8P    88P  ?8bd8b_,dP ?8b,    ?8b,
 88b  ,88b 88b  ,88b  d88      d88888b    d88   88P88b        ?8b     ?8b
  ?88P  88b ?88P' 88bd88'     d88'  ?88b,d88'   88b ?888P' ?888P'  ?888P
  `
-  console.log(chalk.blueBright(pText))
+  console.log(chalk.blueBright(pText));
   console.log('===================================');
   console.log(chalk.green('Estou Online!') + '\n' +
     'Bot:' + name + '\n' +
@@ -76,26 +90,32 @@ d8P  ?88  d8P  ?88    88P      888bd8P    88P  ?8bd8b_,dP ?8b,    ?8b,
 
 //Interaction Event
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return;
+  if (!interaction.isCommand()) return;
 
-	const command = client.commands.get(interaction.commandName);
-	const serverQueue = queue.get(interaction.guild.id);
+  const command = client.commands.get(interaction.commandName);
+  let serverQueue = await queue.get(interaction.guild.id);
+  if (serverQueue == undefined) {
+    serverQueue = queue.set(interaction.guild.id, new Map())
+  };
 
-	if (!command) return;
-	console.log(chalk.bgYellow('Processando comando...'));
+  if (!command) return;
+  console.log(chalk.bgYellow('Processando comando...'));
   console.log(chalk.yellow(`Comando:${interaction.commandName}, Server:${interaction.guild.name}, Autor:${interaction.user.tag}`));
 
-	try {
-		if (interaction.commandName == 'tocar') {
-			await command.execute(interaction, serverQueue, queue);
-		} else {
-			await command.execute(interaction);
-		}
-	} catch (error) {
-		console.error(error);
-		await interaction.reply({ content: 'Ocorreu um erro durante a execução deste comando :(', ephemeral: true });
-		logError(interaction, error)
-	}
+  try {
+    if (interaction.commandName == 'tocar') {
+      await command.execute(interaction, serverQueue, queue);
+    } else {
+      await command.execute(interaction);
+    }
+  } catch (error) {
+    console.error(error);
+    await interaction.reply({
+      content: 'Ocorreu um erro durante a execução deste comando :(',
+      ephemeral: true
+    });
+    logError(interaction, error);
+  };
 });
 
 //Login
