@@ -131,19 +131,7 @@ module.exports = {
       if (typeof leaveTimeout === 'undefined' || leaveTimeout === null) {
         queueConstruct.connection = con;
 
-        let embed = new MessageEmbed()
-          .setAuthor({
-            name: 'Foi adicionado a fila!',
-            iconURL: client.user.avatarURL
-          })
-          .setThumbnail(song.thumb)
-          .setColor('AQUA')
-          .setDescription(`**[${song.title}](${song.url})**`)
-          .setURL(song.url)
-          .addField('**Views**', `${song.views}`, true)
-          .addField('**Autor**', `${song.author}`, true)
-          .addField('**Avaliação**', `👍 ${song.likes}`, true)
-          .setTimestamp(interaction.createdTimestamp);
+        let embed = createEmbed('queue', song)
         interaction.editReply({
           embeds: [embed]
         });
@@ -154,24 +142,19 @@ module.exports = {
     };
 
     //Play function
-    async function play(guild, song, message, connection, player) {
+    async function play(guild, song, message, connection, player, currentlyPlayingMsgId) {
+      var msg;
       if (message == true) {
-        let embed = new MessageEmbed()
-          .setAuthor({
-            name: 'Tocando',
-            iconURL: client.user.avatarURL
-          })
-          .setThumbnail(song.thumb)
-          .setColor('AQUA')
-          .setDescription(`**[${song.title}](${song.url})**`)
-          .setURL(song.url)
-          .addField('**Views**', `${song.views}`, true)
-          .addField('**Autor**', `${song.author}`, true)
-          .addField('**Avaliação**', `👍 ${song.likes}`, true)
-          .setTimestamp(interaction.createdTimestamp)
+        let rembed = createEmbed('queue', song)
         interaction.editReply({
+          embeds: [rembed]
+        });
+
+        let embed = createEmbed('playing', song)
+        msg = await interaction.channel.send({
           embeds: [embed]
         });
+        currentlyPlayingMsgId = msg.id
       };
 
       if (!song) {
@@ -222,7 +205,16 @@ module.exports = {
             };
             if (queueConstruct.songs.length != 0) { //Shift the queue and play the next song
               queueConstruct.songs.shift();
-              await play(interaction.guild, queueConstruct.songs[0], false, connection, plr);
+              await play(interaction.guild, queueConstruct.songs[0], false, connection, plr, currentlyPlayingMsgId);
+
+              if (currentlyPlayingMsgId) {
+                song = queueConstruct.songs[0]
+                let embed = createEmbed('playing', song)
+                let eMsg = await interaction.channel.messages.fetch(currentlyPlayingMsgId);
+                eMsg.edit({
+                  embeds: [embed]
+                });
+              };
             };
           };
         });
@@ -244,5 +236,36 @@ module.exports = {
         queue.delete(interaction.guild.id);
       };
     };
+
+    function createEmbed(type, mSong) {
+      let typeMsg;
+      let color;
+      if (type == 'queue') {
+        typeMsg = 'Foi adicionado a fila!';
+        color = 'DARK_PURPLE';
+      } else if (type == 'playing') {
+        typeMsg = '🎧 Tocando';
+        color = 'FUCHSIA';
+      };
+
+      let embed = new MessageEmbed()
+        .setAuthor({
+          name: `${typeMsg}`,
+          iconURL: client.user.avatarURL
+        })
+        .setThumbnail(mSong.thumb)
+        .setColor(color)
+        .setDescription(`**[${mSong.title}](${mSong.url})**`)
+        .setURL(mSong.url)
+        .setTimestamp(interaction.createdTimestamp)
+
+      if (type == 'playing') {
+        embed.addField('**Views**', `${mSong.views}`, true);
+        embed.addField('**Autor**', `${mSong.author}`, true);
+        embed.addField('**Avaliação**', `👍 ${mSong.likes}`, true);
+      };
+
+      return embed;
+    }
   }
 };
