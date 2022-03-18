@@ -1,6 +1,6 @@
 {
   "name": "Darkness",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "discord bot",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "ffmpeg-static": "^4.4.1",
     "libsodium-wrappers": "^0.7.9",
     "opusscript": "^0.0.8",
-    "ytdl-core": "^4.11.0",
+    "play-dl": "^1.9.2",
     "ytsr": "^3.6.0"
   },
   "repository": {
