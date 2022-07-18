@@ -3,8 +3,9 @@ const fs = require('fs');
 const {
   Client,
   Collection,
-  Intents,
-  MessageEmbed
+  GatewayIntentBits,
+  EmbedBuilder,
+  InteractionType
 } = require('discord.js');
 const Voice = require('@discordjs/voice');
 const chalk = require('chalk');
@@ -25,11 +26,8 @@ const hgErrorChannel = process.env.HOME_GUILD_ERROR_CHANNEL;
 
 
 //Client
-const myIntents = new Intents();
-myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES);
-
 const client = new Client({
-  intents: myIntents
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages]
 });
 const queue = new Map();
 
@@ -48,7 +46,7 @@ async function logError(eInteraction, e) {
   let hguild = await client.guilds.cache.find(hg => hg.id == hguildID);
   let echannel = await hguild.channels.fetch(hgErrorChannel);
 
-  let embed = new MessageEmbed()
+  let embed = new EmbedBuilder()
     .setAuthor({
       name: 'Erro',
       iconURL: 'https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png'
@@ -90,7 +88,7 @@ d8P  ?88  d8P  ?88    88P      888bd8P    88P  ?8bd8b_,dP ?8b,    ?8b,
 
 //Interaction Event
 client.on('interactionCreate', async interaction => {
-  if (!interaction.isCommand()) return;
+  if (interaction.type !== InteractionType.ApplicationCommand) return;
 
   const command = client.commands.get(interaction.commandName);
   let serverQueue = await queue.get(interaction.guild.id);

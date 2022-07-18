@@ -2,7 +2,7 @@ const {
   SlashCommandBuilder
 } = require('@discordjs/builders');
 const {
-  MessageEmbed,
+  EmbedBuilder,
   VoiceChannel
 } = require('discord.js');
 const Voice = require('@discordjs/voice');
@@ -135,6 +135,7 @@ module.exports = {
         interaction.editReply({
           embeds: [embed]
         });
+        return;
       } else {
         queueConstruct.connection = con;
         play(interaction.guild, queueConstruct.songs[0], true, queueConstruct.connection);
@@ -209,6 +210,7 @@ module.exports = {
 
               if (currentlyPlayingMsgId) {
                 song = queueConstruct.songs[0]
+                if (typeof song == 'undefined') return;
                 let embed = createEmbed('playing', song)
                 let eMsg = await interaction.channel.messages.fetch(currentlyPlayingMsgId);
                 eMsg.edit({
@@ -238,6 +240,8 @@ module.exports = {
     };
 
     function createEmbed(type, mSong) {
+      if (typeof mSong == 'undefined') return;
+
       let typeMsg;
       let color;
       if (type == 'queue') {
@@ -248,10 +252,11 @@ module.exports = {
         color = 'FUCHSIA';
       };
 
-      let embed = new MessageEmbed()
+      let avt = client.user.avatarURL()
+      let embed = new EmbedBuilder()
         .setAuthor({
           name: `${typeMsg}`,
-          iconURL: client.user.avatarURL
+          iconURL: avt.toString()
         })
         .setThumbnail(mSong.thumb)
         .setColor(color)
@@ -260,9 +265,7 @@ module.exports = {
         .setTimestamp(interaction.createdTimestamp)
 
       if (type == 'playing') {
-        embed.addField('**Views**', `${mSong.views}`, true);
-        embed.addField('**Autor**', `${mSong.author}`, true);
-        embed.addField('**Avaliação**', `👍 ${mSong.likes}`, true);
+        embed.addFields({name:'**Views**', value:`${mSong.views}`, inline:true}, {name:'**Autor**', value:`${mSong.author}`, inline:true}, {name:'**Avaliação**', value:`👍 ${mSong.likes}`, inline:true});
       };
 
       return embed;
