@@ -265,7 +265,19 @@ module.exports = {
         .setTimestamp(interaction.createdTimestamp)
 
       if (type == 'playing') {
-        embed.addFields({name:'**Views**', value:`${mSong.views}`, inline:true}, {name:'**Autor**', value:`${mSong.author}`, inline:true}, {name:'**Avaliação**', value:`👍 ${mSong.likes}`, inline:true});
+        embed.addFields({
+          name: '**Views**',
+          value: `${mSong.views}`,
+          inline: true
+        }, {
+          name: '**Autor**',
+          value: `${mSong.author}`,
+          inline: true
+        }, {
+          name: '**Avaliação**',
+          value: `👍 ${mSong.likes}`,
+          inline: true
+        });
       };
 
       return embed;
