@@ -19,7 +19,7 @@ module.exports = {
       .setRequired(true)),
   async execute(interaction, serverQueue, queue) {
     function validURL(str) {
-      var pattern = new RegExp('^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$');
+      let pattern = new RegExp('^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$');
       return !!pattern.test(str);
     };
 
@@ -47,7 +47,7 @@ module.exports = {
       serverQueue.set('construct', constructTemplate);
     };
 
-    var songurl;
+    let songurl;
     if (validURL(args) && args.includes('watch')) { //Video
       songurl = args;
     } else if (validURL(args) && args.includes('list')) { //Playlist
@@ -144,7 +144,7 @@ module.exports = {
 
     //Play function
     async function play(guild, song, message, connection, player, currentlyPlayingMsgId) {
-      var msg;
+      let msg;
       if (message == true) {
         let rembed = createEmbed('queue', song)
         interaction.editReply({
@@ -168,7 +168,7 @@ module.exports = {
         return;
       };
 
-      var plr;
+      let plr;
       if (typeof player === 'undefined' || player === null) {
         //Create player
         const player = await Voice.createAudioPlayer({
@@ -195,9 +195,9 @@ module.exports = {
             serverQueue = await queue.get(interaction.guild.id);
             queueConstruct = await serverQueue.get('construct'); //Update the construct
 
-            if (!queueConstruct || queueConstruct.songs.length == 0) { //Leave if there's no more songs
+            if (!queueConstruct || queueConstruct.songs.length == 0) { //Set a timeout to leave if there's no more songs
               queueConstruct.playing = false
-              if (typeof leaveTimeout === 'undefined' || variable === null) {
+              if (typeof leaveTimeout === 'undefined' || leaveTimeout === null) {
                 leaveTimeout = setTimeout(function() {
                   leaveIfInactive()
                 }, 60000);
@@ -232,10 +232,12 @@ module.exports = {
     async function leaveIfInactive() {
       serverQueue = await queue.get(interaction.guild.id);
       queueConstruct = await serverQueue.get('construct');
-      if (!queueConstruct || queueConstruct.songs.length == 0) {
+      if (typeof queueConstruct == 'undefined' || queueConstruct == null || queueConstruct.songs.length == 0) { //Prevents leaving if a song has been added during the inactivity
         let con = await Voice.getVoiceConnection(interaction.guild.id);
         con.destroy();
         queue.delete(interaction.guild.id);
+        queueConstruct = undefined
+        serverQueue = undefined
       };
     };
 

@@ -92,7 +92,7 @@ client.on('interactionCreate', async interaction => {
 
   const command = client.commands.get(interaction.commandName);
   let serverQueue = await queue.get(interaction.guild.id);
-  if (serverQueue == undefined) {
+  if (typeof serverQueue == 'undefined' || serverQueue == undefined) {
     serverQueue = queue.set(interaction.guild.id, new Map())
   };
 
