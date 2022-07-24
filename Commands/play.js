@@ -137,6 +137,7 @@ module.exports = {
         });
         return;
       } else {
+        leaveTimeout = null
         queueConstruct.connection = con;
         play(interaction.guild, queueConstruct.songs[0], true, queueConstruct.connection);
       }

@@ -91,10 +91,6 @@ client.on('interactionCreate', async interaction => {
   if (interaction.type !== InteractionType.ApplicationCommand) return;
 
   const command = client.commands.get(interaction.commandName);
-  let serverQueue = await queue.get(interaction.guild.id);
-  if (typeof serverQueue == 'undefined' || serverQueue == undefined) {
-    serverQueue = queue.set(interaction.guild.id, new Map())
-  };
 
   if (!command) return;
   console.log(chalk.bgYellow('Processando comando...'));
@@ -102,6 +98,15 @@ client.on('interactionCreate', async interaction => {
 
   try {
     if (interaction.commandName == 'tocar') {
+      let serverQueue;
+      if (queue.has(interaction.guild.id)) {
+        serverQueue = await queue.get(interaction.guild.id);
+        if (serverQueue.has('construct') && serverQueue.get('construct').songs.length <= 0) {
+          serverQueue.delete('construct')
+        }
+      } else {
+        serverQueue = queue.set(interaction.guild.id, new Map())
+      }
       await command.execute(interaction, serverQueue, queue);
     } else {
       await command.execute(interaction);
