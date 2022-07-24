@@ -97,7 +97,7 @@ client.on('interactionCreate', async interaction => {
   console.log(chalk.yellow(`Comando:${interaction.commandName}, Server:${interaction.guild.name}, Autor:${interaction.user.tag}`));
 
   try {
-    if (interaction.commandName == 'tocar') {
+    if (interaction.commandName == 'play') {
       let serverQueue;
       if (queue.has(interaction.guild.id)) {
         serverQueue = await queue.get(interaction.guild.id);

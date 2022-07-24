@@ -11,11 +11,15 @@ const playdl = require('play-dl');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('tocar')
-    .setDescription('Adiciona uma musica à fila para ser tocada')
+    .setName('play')
+    .setNameLocalization('pt-BR', 'tocar')
+    .setDescription('Adds a song to the queue to be played')
+    .setDescriptionLocalization('pt-BR', 'Adiciona uma musica à fila para ser tocada')
     .addStringOption(option =>
-      option.setName('musica')
-      .setDescription('URL do youtube ou termo de pesquisa')
+      option.setName('song')
+      .setNameLocalization('pt-BR', 'música')
+      .setDescription('Youtube URL or search term')
+      .setDescriptionLocalization('pt-BR', 'URL do Youtube ou termo de pesquisa')
       .setRequired(true)),
   async execute(interaction, serverQueue, queue) {
     function validURL(str) {
