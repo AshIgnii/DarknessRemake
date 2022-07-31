@@ -1,7 +1,5 @@
 const {
-  SlashCommandBuilder
-} = require('@discordjs/builders');
-const {
+  SlashCommandBuilder,
   EmbedBuilder,
   VoiceChannel
 } = require('discord.js');
@@ -75,7 +73,7 @@ module.exports = {
           for (i = 0; i < videosArray.length; i++) {
             await getInfoandPlay(videosArray[i], true);
           };
-        } else if(urlGroups[2] == 'playlist') { //Playlist URL
+        } else if (urlGroups[2] == 'playlist') { //Playlist URL
           let plresult = await ytpl(urlGroups[3])
           for (i = 0; i < plresult.items.length; i++) {
             if (i == 0) {
