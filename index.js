@@ -16,7 +16,7 @@ const env = require('dotenv').config({
 
 //Configs
 if (env.error) {
-  console.log(chalk.red('Error loading .evn configs!'));
+  console.log(chalk.red('Erro ao carregar .env'));
   return;
 }
 
@@ -113,10 +113,13 @@ client.on('interactionCreate', async interaction => {
     }
   } catch (error) {
     console.error(error);
-    await interaction.reply({
-      content: 'Ocorreu um erro durante a execução deste comando :(',
-      ephemeral: true
-    });
+    try {
+      await interaction.channel.send({
+        content: 'Ocorreu um erro durante a execução deste comando :('
+      });
+    } catch(e) {
+      console.log('Erro!', e)
+    }
     logError(interaction, error);
   };
 });

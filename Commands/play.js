@@ -4,9 +4,43 @@ const {
   VoiceChannel
 } = require('discord.js');
 const Voice = require('@discordjs/voice');
+const chalk = require('chalk');
+
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
 const playdl = require('play-dl');
+
+const SpotifyWebApi = require('spotify-web-api-node');
+const spotifyApi = new SpotifyWebApi({
+  clientId: process.env.SPOTIFY_API_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_API_CLIENT_SECRET
+});
+
+let refreshTimeout;
+spotifyApi.clientCredentialsGrant().then(
+  function(data) {
+    refreshTimeout = setTimeout(refreshToken, data.body['expires_in'] * 1000)
+
+    spotifyApi.setAccessToken(data.body['access_token']);
+  },
+  function(err) {
+    console.log(chalk.red('Erro no request do token'), err);
+  }
+);
+
+function refreshToken() {
+  spotifyApi.refreshAccessToken().then(
+    function(data) {
+      console.log(chalk.bgGreen('Atualizando Token do Spotify'));
+      refreshTimeout = setTimeout(refreshToken, data.body['expires_in'] * 1000)
+
+      spotifyApi.setAccessToken(data.body['access_token']);
+    },
+    function(err) {
+      console.log(chalk.red('Erro na reautenticação do token'), err);
+    }
+  );
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,17 +55,24 @@ module.exports = {
       .setDescriptionLocalization('pt-BR', 'URL do Youtube ou termo de pesquisa')
       .setRequired(true)),
   async execute(interaction, serverQueue, queue) {
-    function validURL(str, returnArray) {
-      let pattern = new RegExp('((?:(?:https?:)?\/\/)?(?:(?:www|m)\.)?(?:youtube\.com|youtu.be)(?:\/([\w\-]+\?v=|embed\/|watch|v\/|playlist)?)(?:\\?list=|\\?\\w=)?([a-zA-Z0-9]{11,}))(?:(&list=)([a-zA-Z0-9]{11,}))?');
+    function validURL(str, returnArray, type) {
+      let pattern;
+      let ytpattern = new RegExp('((?:(?:https?:)?\/\/)?(?:(?:www|m)\.)?(?:youtube\.com|youtu.be)(?:\/([\w\-]+\?v=|embed\/|watch|v\/|playlist)?)(?:\\?list=|\\?\\w=)?([a-zA-Z0-9]{11,}))(?:(&list=)([a-zA-Z0-9]{11,}))?');
+      let sptfypattern = new RegExp('(?:https:\/\/)?(?:www\.)?(?:open\.)?(?:spotify\.com\/)((?:track)?(?:playlist)?)\/([a-zA-Z0-9]{22,})(?:\\?si=)?([a-zA-Z0-9]{16,})?(?:&pt=)?([a-zA-Z0-9]{32,})?');
+      if (type == 'yt') {
+        pattern = ytpattern;
+      } else if (type == 'sptfy') {
+        pattern = sptfypattern;
+      };
       if (!returnArray) {
         return !!pattern.test(str);
       } else {
         return pattern.exec(str);
-      }
+      };
     };
 
     client = interaction.client;
-    await interaction.deferReply(); //Differ the reply to avoid errors
+    await interaction.deferReply();
 
     if (!interaction.member.voice.channel) {
       interaction.editReply({
@@ -58,18 +99,18 @@ module.exports = {
     let urlGroups;
     let playlistID;
     let currentlyPlayingMsgId;
-    if (validURL(args, false)) {
-      urlGroups = validURL(args, true)
+    if (validURL(args, false, 'yt')) {
+      urlGroups = validURL(args, true, 'yt')
       if (urlGroups[2] === 'playlist' || typeof urlGroups[4] !== 'undefined') { //Playlist
         if (typeof urlGroups[4] !== 'undefined') { //Video URL with playlist
-          let plresult = await ytpl(urlGroups[5])
-          await getInfoandPlay(urlGroups[1], true, plresult)
+          let plresult = await ytpl(urlGroups[5]);
+          await getInfoandPlay(urlGroups[1], true, plresult);
           let videosArray = [];
           for (i = 0; i < plresult.items.length; i++) {
             if (plresult.items[i].shortUrl != urlGroups[1]) {
-              videosArray.push(plresult.items[i].shortUrl)
-            }
-          }
+              videosArray.push(plresult.items[i].shortUrl);
+            };
+          };
           for (i = 0; i < videosArray.length; i++) {
             await getInfoandPlay(videosArray[i], true);
           };
@@ -80,15 +121,57 @@ module.exports = {
               await getInfoandPlay(plresult.items[i].shortUrl, true, plresult);
             } else {
               await getInfoandPlay(plresult.items[i].shortUrl, true);
-            }
-          }
-        }
+            };
+          };
+        };
       } else if (urlGroups[2] === 'watch') { //Video
         getInfoandPlay(urlGroups[1], false);
+      };
+    } else if (validURL(args, false, 'sptfy')) {
+      urlGroups = validURL(args, true, 'sptfy');
+      if (urlGroups[1] === 'track') { //Spotify Track
+        spotifyApi.getTrack(urlGroups[2])
+          .then(function(data) {
+            let result = data.body;
+            let searchQuery = result.name + ' ' + result.artists[0].name;
+            ytSearch(searchQuery);
+          }, function(err) {
+            console.log(err)
+            interaction.editReply({
+              content: 'Não consegui identificar essa música =(',
+              ephemeral: true
+            });
+            return;
+          });
+      } else if (urlGroups[1] === 'playlist') { //Spotify Playlist
+        await spotifyApi.getPlaylist(urlGroups[2])
+          .then(async function(data) {
+              let playlistDetails = data.body
+
+              for (i = 0; i < data.body.tracks.items.length; i++) {
+                if (i === 0) {
+                  await ytSearch(data.body.tracks.items[i].track.name + ' ' + data.body.tracks.items[i].track.artists[0].name, true, playlistDetails);
+                } else {
+                  await ytSearch(data.body.tracks.items[i].track.name + ' ' + data.body.tracks.items[i].track.artists[0].name, true);
+                }
+              };
+            },
+            function(err) {
+              console.log(err)
+              interaction.editReply({
+                content: 'Não consegui identificar essa música =(',
+                ephemeral: true
+              });
+              return;
+            });
       }
-    } else { //Search term
+    } else { //Search Query
+      ytSearch(args);
+    }
+
+    async function ytSearch(query, playlistElement, sptfyPlaylist) {
       try {
-        searchResult = await ytsr(args, options = {
+        searchResult = await ytsr(query, options = {
           limit: 2
         });
       } catch (e) {
@@ -104,17 +187,41 @@ module.exports = {
       } else if (!fsturl.startsWith('https://www.youtube.com/user')) {
         songURL = fsturl;
       } else {
-        interaction.editReply({
-          content: 'Não consegui encontrar nenhum vídeo =(',
-          ephemeral: true
-        });
-        return;
+        if (playlistElement !== true) {
+          interaction.editReply({
+            content: 'Não consegui encontrar nenhum vídeo =(',
+            ephemeral: true
+          });
+          return;
+        }
       };
-      getInfoandPlay(songURL, false);
+
+      if (playlistElement !== true) {
+        getInfoandPlay(songURL, false);
+      } else {
+        getInfoandPlay(songURL, true, sptfyPlaylist)
+      }
     };
 
+    //getInfoandPlay
     async function getInfoandPlay(url, isPlaylistElement, playlist) {
-      songInfo = await playdl.video_basic_info(url);
+      try {
+        songInfo = await playdl.video_basic_info(url);
+      } catch (e) {
+        console.log(chalk.red('Erro ao pegar informações do vídeo'), e);
+        let embed = new EmbedBuilder()
+          .setAuthor({
+            name: 'Erro!',
+            iconURL: client.user.avatarURL().toString()
+          })
+          .setColor('Red')
+          .setDescription(`**Ocorreu um erro ao adicionar uma ou mais musicas á fila**`)
+          .setTimestamp(interaction.createdTimestamp)
+        await interaction.channel.send({
+          embeds: [embed]
+        });
+        return;
+      }
 
       let thumb = await songInfo.video_details.thumbnails;
 
@@ -157,11 +264,13 @@ module.exports = {
           embeds: [embed]
         });
 
-        let pEmbed = createEmbed('playing', song)
-        msg = await interaction.channel.send({
-          embeds: [pEmbed]
-        });
-        currentlyPlayingMsgId = msg.id;
+        if (serverQueue.get('construct').songs.length <= 1) {
+          let pEmbed = createEmbed('playing', song)
+          msg = await interaction.channel.send({
+            embeds: [pEmbed]
+          });
+          currentlyPlayingMsgId = msg.id;
+        }
       }
 
       if (typeof con === 'undefined' || con === null) { //If not join voice channel and begin playing
@@ -170,7 +279,7 @@ module.exports = {
           guildId: guildID,
           adapterCreator: creator,
         });
-        play(interaction.guild, queueConstruct.songs[0], !isPlaylistElement, connection, null, currentlyPlayingMsgId);
+        await play(interaction.guild, queueConstruct.songs[0], !isPlaylistElement, connection, null, currentlyPlayingMsgId);
         return;
       } else { //Else, notify that the song has been added to the queue
         if (typeof leaveTimeout === 'undefined' || leaveTimeout === null) {
@@ -244,7 +353,7 @@ module.exports = {
             serverQueue = await queue.get(interaction.guild.id);
             queueConstruct = await serverQueue.get('construct'); //Update the construct
 
-            if (typeof queueConstruct === 'undefined' || queueConstruct === null || queueConstruct.songs.length == 0) { //Set a timeout to leave if there's no more songs
+            if (typeof queueConstruct === 'undefined' || queueConstruct === null || queueConstruct.songs.length === 0) { //Set a timeout to leave if there's no more songs
               queueConstruct.playing = false;
               if (typeof leaveTimeout === 'undefined' || leaveTimeout === null) {
                 leaveTimeout = setTimeout(function() {
@@ -342,14 +451,24 @@ module.exports = {
         });
         embed.setThumbnail(mSong.thumb);
         embed.setColor(color);
-        embed.setDescription(`**[${plst.title}](${plst.url})**`);
-        embed.setURL(plst.url);
         embed.setTimestamp(interaction.createdTimestamp);
-        embed.addFields({
-          name: `Foram adicionados ${plst.items.length} vídeos a fila`,
-          value: `** **`,
-          inline: true
-        });
+        if (plst.uri.includes('spotify')) {
+          embed.setDescription(`**[${plst.name}](${plst.external_urls['spotify']})**`);
+          embed.setURL(plst.external_urls['spotify']);
+          embed.addFields({
+            name: `Foram adicionados ${plst.tracks.items.length} vídeos a fila`,
+            value: `** **`,
+            inline: true
+          });
+        } else {
+          embed.setDescription(`**[${plst.title}](${plst.url})**`);
+          embed.setURL(plst.url);
+          embed.addFields({
+            name: `Foram adicionados ${plst.items.length} vídeos a fila`,
+            value: `** **`,
+            inline: true
+          });
+        }
       }
       return embed;
     }
