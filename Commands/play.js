@@ -461,14 +461,16 @@ module.exports = {
         embed.setThumbnail(mSong.thumb);
         embed.setColor(color);
         embed.setTimestamp(interaction.createdTimestamp);
-        if (plst.uri.includes('spotify')) {
-          embed.setDescription(`**[${plst.name}](${plst.external_urls['spotify']})**`);
-          embed.setURL(plst.external_urls['spotify']);
-          embed.addFields({
-            name: `Foram adicionados ${plst.tracks.items.length} vídeos a fila`,
-            value: `** **`,
-            inline: true
-          });
+        if (typeof plst.uri !== 'undefined') {
+          if (plst.uri.includes('spotify')) {
+            embed.setDescription(`**[${plst.name}](${plst.external_urls['spotify']})**`);
+            embed.setURL(plst.external_urls['spotify']);
+            embed.addFields({
+              name: `Foram adicionados ${plst.tracks.items.length} vídeos a fila`,
+              value: `** **`,
+              inline: true
+            });
+          }
         } else {
           embed.setDescription(`**[${plst.title}](${plst.url})**`);
           embed.setURL(plst.url);
