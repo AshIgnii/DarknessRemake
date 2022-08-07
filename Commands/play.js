@@ -220,6 +220,12 @@ module.exports = {
         await interaction.channel.send({
           embeds: [embed]
         });
+        if (interaction.deferred) {
+          interaction.editReply({
+            content: 'Erro =(',
+            ephemeral: true
+          });
+        }
         return;
       }
 
