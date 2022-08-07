@@ -221,8 +221,8 @@ module.exports = {
           embeds: [embed]
         });
 
-        let reply = await interaction.fetchReply
-        if (interaction.deferred && reply.attachments.size > 0) {
+        let att = await interaction.fetchReply().attachments
+        if (interaction.deferred && att.size > 0) {
           interaction.editReply({
             content: 'Erro =(',
             ephemeral: true
