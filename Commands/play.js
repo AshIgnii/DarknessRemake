@@ -221,13 +221,14 @@ module.exports = {
           embeds: [embed]
         });
 
-        let emb = await interaction.fetchReply().embeds
-        if (interaction.deferred && emb.length > 0) {
+        let emb = await interaction.fetchReply();
+        emb = emb.embeds;
+        if (interaction.deferred && emb.length === 0) {
           interaction.editReply({
             content: 'Erro =(',
             ephemeral: true
           });
-        }
+        };
         return;
       }
 
