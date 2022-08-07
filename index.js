@@ -51,7 +51,7 @@ async function logError(eInteraction, e) {
       name: 'Erro',
       iconURL: 'https://cdn0.iconfinder.com/data/icons/shift-free/32/Error-512.png'
     })
-    .setColor('RED')
+    .setColor('Red')
     .setDescription(`Comando: ${eInteraction.commandName} \n Autor: ${eInteraction.user.tag} \n Server: ${eInteraction.guild.name} \n \n ${e.name + ': ' + e.message}`)
     .setTimestamp(eInteraction.createdTimestamp)
   echannel.send({

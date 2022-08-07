@@ -220,7 +220,9 @@ module.exports = {
         await interaction.channel.send({
           embeds: [embed]
         });
-        if (interaction.deferred) {
+
+        let reply = await interaction.fetchReply
+        if (interaction.deferred && reply.attachments.size > 0) {
           interaction.editReply({
             content: 'Erro =(',
             ephemeral: true
