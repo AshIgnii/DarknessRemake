@@ -57,7 +57,7 @@ module.exports = {
   async execute(interaction, serverQueue, queue) {
     function validURL(str, returnArray, type) {
       let pattern;
-      let ytpattern = new RegExp('((?:(?:https?:)?\/\/)?(?:(?:www|m).)?(?:youtube.com|youtu.be)(?:\/([\w\-]+\?v=|embed\/|watch|v\/|playlist)?)(?:\\?list=|\\?\\w=)?([a-zA-Z0-9]{11,}))(?:(&list=)([a-zA-Z0-9]{11,}))?');
+      let ytpattern = new RegExp('((?:(?:https?:)?\/\/)?(?:(?:www|m).)?(?:youtube.com|youtu.be)(?:\/([w-]+?v=|embed\/|watch|v\/|playlist)?)(?:\\?list=|\\?\\w=)?([a-zA-Z0-9]{11,}))(?:(&list=)([a-zA-Z0-9]{11,}))?');
       let sptfypattern = new RegExp('(?:https:\/\/)?(?:www.)?(?:open.)?(?:spotify.com\/)((?:track)?(?:playlist)?)\/([a-zA-Z0-9]{22,})(?:\\?si=)?([a-zA-Z0-9]{16,})?(?:&pt=)?([a-zA-Z0-9]{32,})?');
       if (type == 'yt') {
         pattern = ytpattern;
