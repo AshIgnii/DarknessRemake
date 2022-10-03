@@ -2,3 +2,4 @@ node_modules
 Configs/.env
 Commands/newplay.js
 Commands/teste.js
+Commands/getInfoExample.json

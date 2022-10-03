@@ -8,7 +8,7 @@ const chalk = require('chalk');
 
 const ytpl = require('ytpl');
 const ytsr = require('ytsr');
-const playdl = require('play-dl');
+const ytdl = require('ytdl-core');
 
 const SpotifyWebApi = require('spotify-web-api-node');
 const spotifyApi = new SpotifyWebApi({
@@ -206,7 +206,8 @@ module.exports = {
     //getInfoandPlay
     async function getInfoandPlay(url, isPlaylistElement, playlist) {
       try {
-        songInfo = await playdl.video_basic_info(url);
+        songInfo = await ytdl.getBasicInfo(url);
+        songInfo = songInfo.videoDetails
       } catch (e) {
         console.log(chalk.red('Erro ao pegar informações do vídeo'), e);
         let embed = new EmbedBuilder()
@@ -232,25 +233,25 @@ module.exports = {
         return;
       }
 
-      let thumb = await songInfo.video_details.thumbnails;
+      let thumb = await songInfo.thumbnails;
 
-      let likes = await songInfo.video_details.likes;
+      let likes = await songInfo.likes;
       if (likes == null) {
         likes = '0'
       };
 
-      let length = await songInfo.video_details.durationRaw;
+      let length = await songInfo.lengthSeconds;
 
       let requester = interaction.member.displayName;
 
-      let views = songInfo.video_details.views.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //Adds commas
+      let views = songInfo.viewCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); //Adds commas
 
       song = {
-        title: songInfo.video_details.title,
-        url: songInfo.video_details.url,
+        title: songInfo.title,
+        url: songInfo.video_url,
         thumb: thumb[3].url,
         views: views,
-        author: songInfo.video_details.channel.name,
+        author: songInfo.author.name,
         likes: likes,
         requester: requester,
         duration: length,
@@ -304,6 +305,7 @@ module.exports = {
         } else {
           leaveTimeout = null;
           queueConstruct.connection = con;
+          serverQueue.set('construct', queueConstruct);
           play(interaction.guild, queueConstruct.songs[0], !isPlaylistElement, queueConstruct.connection, null, currentlyPlayingMsgId);
         }
       };
@@ -349,8 +351,12 @@ module.exports = {
       };
 
       //Set resource and play
-      let songst = await playdl.stream(song.url);
-      const resource = await Voice.createAudioResource(songst.stream, {
+      let songst = await ytdl(song.url, {
+            filter: "audioonly",
+            quality: 'highestaudio',
+            highWaterMark: 1 << 25
+        });
+      const resource = await Voice.createAudioResource(songst, {
         inputType: songst.type
       });
       plr.play(resource);
@@ -385,6 +391,28 @@ module.exports = {
                 });
               };
             };
+          };
+        });
+      };
+
+      //Skip listener
+      let skipcon = await Voice.getVoiceConnection(interaction.guild.id);
+      if (skipcon.listenerCount('skip') == 0) { //Prevents multiple listeners
+        skipcon.addListener('skip', async () => {
+          serverQueue = await queue.get(interaction.guild.id);
+          queueConstruct = await serverQueue.get('construct'); //Update the construct
+
+          queueConstruct.songs.shift(); //Shift the queue and play the next song
+          await play(interaction.guild, queueConstruct.songs[0], false, connection, plr, currentlyPlayingMsgId);
+
+          if (typeof currentlyPlayingMsgId != 'undefined' || currentlyPlayingMsgId != null) {
+            song = queueConstruct.songs[0];
+            if (typeof song == 'undefined') return;
+            let embed = createEmbed('playing', song);
+            let eMsg = await interaction.channel.messages.fetch(currentlyPlayingMsgId);
+            eMsg.edit({
+              embeds: [embed]
+            });
           };
         });
       };

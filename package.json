@@ -20,8 +20,8 @@
     "ffmpeg-static": "^4.4.1",
     "libsodium-wrappers": "^0.7.9",
     "opusscript": "^0.0.8",
-    "play-dl": "^1.9.5",
     "spotify-web-api-node": "^5.0.2",
+    "ytdl-core": "^4.11.2",
     "ytpl": "^2.3.0",
     "ytsr": "^3.6.0"
   },
