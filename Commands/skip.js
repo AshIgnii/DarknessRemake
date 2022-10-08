@@ -15,7 +15,7 @@ module.exports = {
     await interaction.deferReply();
 
     if (typeof serverQueue.get('construct') === 'undefined' || serverQueue.get('construct') === null) { //Check if queue exists
-      await interaction.reply({content:'Não estou tocando nada no momento!', ephemeral: false});
+      await interaction.editReply({content:'Não estou tocando nada no momento!', ephemeral: false});
       return;
     };
 
@@ -35,6 +35,7 @@ module.exports = {
         };
       };
       await interaction.editReply({content:'Não estou em um canal de voz!', ephemeral: false});
+      return;
     };
   },
 };
