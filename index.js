@@ -114,9 +114,12 @@ client.on('interactionCreate', async interaction => {
   } catch (error) {
     console.error(error);
     try {
-      await interaction.channel.send({
+      await reply = interaction.channel.send({
         content: 'Ocorreu um erro durante a execução deste comando :('
-      });
+      })
+      .then(setTimeout(() => {
+        reply.delete();
+      }, 10000));
     } catch(e) {
       console.log('Erro!', e)
     }
