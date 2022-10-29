@@ -352,9 +352,8 @@ module.exports = {
 
       //Set resource and play
       let songst = await ytdl(song.url, {
-            filter: "audioonly",
             quality: 'highestaudio',
-            highWaterMark: 1 << 25
+            highWaterMark: 1 << 26
         });
       const resource = await Voice.createAudioResource(songst, {
         inputType: songst.type
