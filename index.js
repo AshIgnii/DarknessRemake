@@ -20,6 +20,7 @@ if (env.error) {
   return;
 }
 
+const logFolder = './Logs/';
 const token = process.env.TOKEN;
 const hguildID = process.env.HOME_GUILD_ID;
 const hgErrorChannel = process.env.HOME_GUILD_ERROR_CHANNEL;
@@ -43,6 +44,41 @@ for (const file of commandFiles) {
 
 //Functions
 async function logError(eInteraction, e) {
+  let errObj = {
+    Error: []
+  };
+  errObj.Error.push({
+    Interaction: eInteraction
+  }, {
+    Name: e.name
+  }, {
+    Message: e.message
+  }, {
+    Path: `${e.fileName} : ${e.collumnNumber}:${e.lineNumber}`
+  }, {
+    Cause: e.cause
+  }, {
+    Stack: e.stack
+  });
+  let eObjJSON = JSON.stringify(errObj);
+
+  let tdy = new Date();
+
+  let mon = tdy.getMonth() + 1;
+  if (mm < 10) mm = '0' + mm;
+
+  let day = tdy.getDate();
+  if (dd < 10) dd = '0' + dd;
+
+  let yr = tdy.getFullYear();
+  let hr = tdy.getHours();
+  let min = tdy.getMinutes();
+  let sec = tdy.getSeconds();
+
+  let formDate = `${hr}:${min}:${sec}-${day}/${mon}/${yr}`
+
+  await fs.writeFile(`Error-${formDate}.json`, eObjJSON)
+
   let hguild = await client.guilds.cache.find(hg => hg.id == hguildID);
   let echannel = await hguild.channels.fetch(hgErrorChannel);
 
@@ -115,12 +151,12 @@ client.on('interactionCreate', async interaction => {
     console.error(error);
     try {
       reply = await interaction.channel.send({
-        content: 'Ocorreu um erro durante a execução deste comando :('
-      })
-      .then(setTimeout(() => {
-        reply.delete();
-      }, 10000));
-    } catch(e) {
+          content: 'Ocorreu um erro durante a execução deste comando :('
+        })
+        .then(setTimeout(() => {
+          reply.delete();
+        }, 10000));
+    } catch (e) {
       console.log('Erro!', e)
     }
     logError(interaction, error);
