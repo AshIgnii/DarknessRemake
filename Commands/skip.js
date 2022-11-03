@@ -14,7 +14,8 @@ module.exports = {
   async execute(interaction, serverQueue, queue) {
     await interaction.deferReply();
 
-    if (typeof serverQueue.get('construct') === 'undefined' || serverQueue.get('construct') === null) { //Check if queue exists
+    let queuecst = await serverQueue.get('construct');
+    if (typeof queuecst === 'undefined' || queuecst === null) { //Check if queue exists
       await interaction.editReply({content:'Não estou tocando nada no momento!', ephemeral: false});
       return;
     };
@@ -24,7 +25,16 @@ module.exports = {
     if (typeof guildClientVoice.joinConfig.channelId !== 'undefined' || typeof guildClientVoice.joinConfig.channelId !== null) {
       let vchannel = interaction.guild.channels.cache.find(chnl => chnl.id == guildClientVoice.joinConfig.channelId);
       if (vchannel === member.voice.channel) {
-        if (vchannel.members.length <= 2 || member.roles.cache.find(role => role.name.toLowerCase() == 'dj') || member.permissions.has('MANAGE_CHANNELS', true)) {
+
+        try {
+          let djrole = member.roles.cache.find(role => role.name.toLowerCase() == 'dj');
+          djrole = typeof djrole !== 'undefined' || djrole === null;
+        } catch(e) {
+          djrole = false
+          throw e;
+        }
+
+        if (vchannel.members.length <= 2 || djrole || member.permissions.has('MANAGE_CHANNELS', true)) {
           const queueConstruct = await queue.get(interaction.guild.id).get('construct');
           await queueConstruct.connection.emit('skip');
           await interaction.editReply({content:'⏩ Pulando a música atual...', ephemeral: false});
@@ -34,7 +44,7 @@ module.exports = {
           return;
         };
       };
-      await interaction.editReply({content:'Não estou em um canal de voz!', ephemeral: false});
+      await interaction.editReply({content:'Não estou em seu canal de voz!', ephemeral: false});
       return;
     };
   },
