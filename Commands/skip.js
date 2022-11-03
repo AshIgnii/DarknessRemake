@@ -26,8 +26,9 @@ module.exports = {
       let vchannel = interaction.guild.channels.cache.find(chnl => chnl.id == guildClientVoice.joinConfig.channelId);
       if (vchannel === member.voice.channel) {
 
+        let djrole
         try {
-          let djrole = member.roles.cache.find(role => role.name.toLowerCase() == 'dj');
+          djrole = member.roles.cache.find(role => role.name.toLowerCase() == 'dj');
           djrole = typeof djrole !== 'undefined' || djrole === null;
         } catch(e) {
           djrole = false

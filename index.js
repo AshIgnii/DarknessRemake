@@ -15,6 +15,10 @@ const env = require('dotenv').config({
 
 
 //Configs
+BigInt.prototype["toJSON"] = function () {
+  return this.toString();
+};
+
 if (env.error) {
   console.log(chalk.red('Erro ao carregar .env'));
   return;
