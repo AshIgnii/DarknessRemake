@@ -44,7 +44,7 @@ const commandFiles = fs.readdirSync('./Commands').filter(file => file.endsWith('
 for (const file of commandFiles) {
   const command = require(`./Commands/${file}`);
   client.commands.set(command.data.name, command);
-}
+};
 
 //Functions
 async function logError(eInteraction, e) {
@@ -79,9 +79,9 @@ async function logError(eInteraction, e) {
   let min = tdy.getMinutes();
   let sec = tdy.getSeconds();
 
-  let formDate = `${hr}:${min}:${sec}-${day}/${mon}/${yr}`
+  let formDate = `${hr}:${min}:${sec}-${day}/${mon}/${yr}`;
 
-  await fs.writeFile(`Error-${formDate}.json`, eObjJSON)
+  await fs.writeFile(`Error-${formDate}.json`, eObjJSON);
 
   let hguild = await client.guilds.cache.find(hg => hg.id == hguildID);
   let echannel = await hguild.channels.fetch(hgErrorChannel);
@@ -117,11 +117,11 @@ d8P  ?88  d8P  ?88    88P      888bd8P    88P  ?8bd8b_,dP ?8b,    ?8b,
  `
   console.log(chalk.blueBright(pText));
   console.log('===================================');
-  console.log(chalk.green('Estou Online!') + '\n' +
-    'Bot:' + name + '\n' +
-    'Autor:' + author + '\n' +
-    'Versão:' + version + '\n' +
-    'Servers:' + client.guilds.cache.size);
+  console.log(chalk.green('Estou Online!') + `\n
+    Bot: ${name} \n
+    Autor: ${author} \n
+    Versão: ${version} \n
+    Servers: ${client.guilds.cache.size}`);
   console.log('===================================');
   console.log(chalk.blueBright('Log:'));
 });
