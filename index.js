@@ -15,7 +15,7 @@ const env = require('dotenv').config({
 
 
 //Configs
-BigInt.prototype["toJSON"] = function () {
+BigInt.prototype["toJSON"] = function() {
   return this.toString();
 };
 
@@ -69,10 +69,10 @@ async function logError(eInteraction, e) {
   let tdy = new Date();
 
   let mon = tdy.getMonth() + 1;
-  if (mm < 10) mm = '0' + mm;
+  if (mon < 10) mon = '0' + mon;
 
   let day = tdy.getDate();
-  if (dd < 10) dd = '0' + dd;
+  if (day < 10) day = '0' + day;
 
   let yr = tdy.getFullYear();
   let hr = tdy.getHours();

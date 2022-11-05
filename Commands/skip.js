@@ -35,7 +35,7 @@ module.exports = {
           throw e;
         }
 
-        if (vchannel.members.length <= 2 || djrole || member.permissions.has('MANAGE_CHANNELS', true)) {
+        if (vchannel.members.length <= 2 || djrole || member.permissions.has('ManageChannels', true)) {
           const queueConstruct = await queue.get(interaction.guild.id).get('construct');
           await queueConstruct.connection.emit('skip');
           await interaction.editReply({content:'⏩ Pulando a música atual...', ephemeral: false});
