@@ -358,7 +358,7 @@ module.exports = {
       const resource = await Voice.createAudioResource(songst, {
         inputType: songst.type
       });
-      plr.play(resource);
+      await plr.play(resource);
 
       //Add a listener to play the next song in the queue (if it does not exist already)
       if (plr.listenerCount('stateChange') == 0) { //Prevents multiple listeners
@@ -417,9 +417,9 @@ module.exports = {
       };
 
       //Subscribe
-      const subscription = connection.subscribe(plr);
+      const subscription = await connection.subscribe(plr);
       queueConstruct.playing = true
-      serverQueue = queue.get(interaction.guild.id);
+      serverQueue = await queue.get(interaction.guild.id);
       serverQueue.set('construct', queueConstruct); //Update the serverQueue
     };
 
